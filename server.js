@@ -46,17 +46,15 @@ db.exec(`
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc:   ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc:    ["'self'", "https://fonts.gstatic.com"],
-      scriptSrc:  ["'self'", "'unsafe-inline'"],
-      imgSrc:     ["'self'", "data:"],
-    },
-  },
-}));
+app.use(helmet({ contentSecurityPolicy: false }));
+
+app.use((_req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:"
+  );
+  next();
+});
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
