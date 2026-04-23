@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kcal — Calorie Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Variables ─────────────────────────────────────────── */
+    :root {
+      --bg:          #09090F;
+      --surface:     #111119;
+      --surface-2:   #18181F;
+      --surface-3:   #22222E;
+      --accent:      #F2C94C;
+      --accent-dim:  rgba(242,201,76,0.12);
+      --success:     #27AE84;
+      --success-dim: rgba(39,174,132,0.12);
+      --danger:      #E05757;
+      --danger-dim:  rgba(224,87,87,0.12);
+      --text:        #EDEAE3;
+      --text-muted:  #7E7D89;
+      --text-subtle: #3E3D4A;
+      --border:      rgba(255,255,255,0.055);
+      --r:           14px;
+      --r-sm:        9px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Karla', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Auth screen ───────────────────────────────────────── */
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(242,201,76,0.07) 0%, transparent 70%),
+        var(--bg);
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    }
+
+    .auth-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+
+    .auth-tagline {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+      margin-bottom: 36px;
+      font-weight: 300;
+    }
+
+    .tab-row {
+      display: flex;
+      background: var(--surface-2);
+      border-radius: var(--r-sm);
+      padding: 4px;
+      margin-bottom: 28px;
+      gap: 2px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: 'Karla', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #09090F;
+      font-weight: 600;
+    }
+
+    .field { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      margin-bottom: 7px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: 'Karla', sans-serif;
+      font-size: 0.9375rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(242,201,76,0.1);
+    }
+
+    input::placeholder { color: var(--text-subtle); }
+
+    /* hide number spinners */
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--r-sm);
+      font-family: 'Karla', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #09090F;
+      width: 100%;
+      padding: 14px;
+      font-size: 0.95rem;
+    }
+    .btn-primary:hover  { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0);  filter: brightness(0.98); }
+
+    .btn-ghost {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 0.82rem;
+    }
+    .btn-ghost:hover { background: var(--surface-3); color: var(--text); }
+
+    .btn-icon {
+      background: var(--danger-dim);
+      color: var(--danger);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .btn-icon:hover { background: rgba(224,87,87,0.22); }
+
+    .err {
+      color: var(--danger);
+      font-size: 0.82rem;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 18px;
+    }
+
+    /* ── App shell ─────────────────────────────────────────── */
+    #app {
+      display: none;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 16px 90px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-pill {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+    }
+
+    /* ── Bottom nav ────────────────────────────────────────── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(9,9,15,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 50;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 6px 8px;
+      border: none;
+      background: none;
+      color: var(--text-subtle);
+      cursor: pointer;
+      font-family: 'Karla', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-item svg { width: 20px; height: 20px; stroke-width: 1.6; }
+    .nav-item.active { color: var(--accent); }
+
+    /* ── Views ─────────────────────────────────────────────── */
+    .view { display: none; animation: fadeUp 0.2s ease; }
+    .view.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+
+    /* ── Date navigator ────────────────────────────────────── */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .date-arrow {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.18s;
+    }
+    .date-arrow:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+    .date-arrow:disabled { opacity: 0.25; cursor: default; }
+
+    .date-center { text-align: center; min-width: 180px; }
+
+    .date-main {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .date-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* ── Progress ring ─────────────────────────────────────── */
+    .ring-wrap {
+      position: relative;
+      width: 192px;
+      height: 192px;
+      margin: 0 auto 28px;
+    }
+
+    .ring-wrap svg { transform: rotate(-90deg); }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .ring-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem;
+      font-weight: 600;
+      line-height: 1;
+      transition: color 0.4s;
+    }
+
+    .ring-unit {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Stat cards ────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.65rem;
+      font-weight: 600;
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+
+    .stat-lbl {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-weight: 500;
+    }
+
+    .c-accent  .stat-num { color: var(--accent);  }
+    .c-success .stat-num { color: var(--success); }
+    .c-danger  .stat-num { color: var(--danger);  }
+
+    /* ── Add-food card ─────────────────────────────────────── */
+    .add-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px;
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .add-row {
+      display: grid;
+      grid-template-columns: 1fr 110px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .add-row .field { margin: 0; }
+    .add-row .btn   { padding: 12px 18px; }
+
+    /* ── Entry list ────────────────────────────────────────── */
+    .entry-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 13px 16px;
+      margin-bottom: 7px;
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0);    }
+    }
+
+    .entry-name  { flex: 1; font-size: 0.92rem; }
+    .entry-cals  { font-weight: 600; font-size: 0.92rem; color: var(--accent); }
+
+    .empty-state {
+      text-align: center;
+      padding: 44px 20px;
+      color: var(--text-subtle);
+    }
+
+    .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.4; }
+    .empty-text { font-size: 0.88rem; }
+
+    /* ── History view ──────────────────────────────────────── */
+    .view-header {
+      margin-bottom: 22px;
+    }
+
+    .view-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .view-header p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* Bar chart */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 18px 10px;
+      margin-bottom: 20px;
+    }
+
+    .chart-title {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 90px;
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 5px;
+    }
+
+    .bar-fill {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      min-height: 2px;
+      transition: height 0.4s ease, opacity 0.2s;
+    }
+
+    .bar-col:hover .bar-fill { opacity: 0.75; }
+
+    .bar-lbl {
+      font-size: 0.52rem;
+      color: var(--text-subtle);
+    }
+
+    /* History day rows */
+    .hday {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      margin-bottom: 7px;
+    }
+
+    .hday-date { min-width: 72px; }
+
+    .hday-date-main {
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    .hday-date-sub {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    .hday-bar {
+      flex: 1;
+      height: 5px;
+      background: var(--surface-3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .hday-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .hday-total {
+      min-width: 66px;
+      text-align: right;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .badge {
+      min-width: 52px;
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .badge-under { background: var(--success-dim); color: var(--success); }
+    .badge-over  { background: var(--danger-dim);  color: var(--danger);  }
+    .badge-met   { background: var(--accent-dim);  color: var(--accent);  }
+
+    /* ── Settings view ─────────────────────────────────────── */
+    .settings-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+
+    .settings-block h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .account-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── Toast ─────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 76px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--surface-3);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 22px;
+      border-radius: 50px;
+      font-size: 0.83rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 200;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .auth-card   { padding: 32px 22px; }
+      .add-row     { grid-template-columns: 1fr; }
+      .add-row .btn { width: 100%; }
+      .hday-bar    { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─────────────────────────── AUTH SCREEN ─────────────────────────── -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">Kcal</div>
+    <div class="auth-tagline">Simple, honest calorie tracking</div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-login"    onclick="switchTab('login')">Sign in</button>
+      <button class="tab-btn"        id="tab-register" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="form-login">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="l-user" placeholder="your_username" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">Sign in</button>
+      <div class="err" id="l-err"></div>
+    </div>
+
+    <!-- Register -->
+    <div id="form-register" style="display:none">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="r-user" placeholder="3–20 chars, letters/numbers/underscore" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="r-pass" placeholder="Min. 8 characters" autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary" onclick="doRegister()">Create account</button>
+      <div class="err" id="r-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────── MAIN APP ────────────────────────────── -->
+<div id="app">
+  <header>
+    <div class="logo">Kcal</div>
+    <div class="header-right">
+      <span class="user-pill" id="hdr-user"></span>
+      <button class="btn btn-ghost" onclick="doLogout()">Sign out</button>
+    </div>
+  </header>
+
+  <!-- TODAY VIEW -->
+  <div id="view-today" class="view active">
+
+    <div class="date-nav">
+      <button class="date-arrow" onclick="changeDay(-1)">‹</button>
+      <div class="date-center">
+        <div class="date-main" id="dn-main"></div>
+        <div class="date-sub"  id="dn-sub"></div>
+      </div>
+      <button class="date-arrow" id="btn-next-day" onclick="changeDay(1)">›</button>
+    </div>
+
+    <div class="ring-wrap">
+      <svg width="192" height="192" viewBox="0 0 192 192">
+        <circle cx="96" cy="96" r="78" fill="none" stroke="var(--surface-3)" stroke-width="13"/>
+        <circle cx="96" cy="96" r="78" fill="none" stroke-width="13"
+          stroke-linecap="round"
+          id="ring-arc"
+          stroke-dasharray="490.09"
+          stroke-dashoffset="490.09"
+          style="transition: stroke-dashoffset 0.55s ease, stroke 0.35s ease;"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-val" id="ring-val">0</div>
+        <div class="ring-unit">kcal</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat c-accent">
+        <div class="stat-num" id="s-target">2000</div>
+        <div class="stat-lbl">Target</div>
+      </div>
+      <div class="stat" id="s-rem-card">
+        <div class="stat-num" id="s-rem">2000</div>
+        <div class="stat-lbl" id="s-rem-lbl">Remaining</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="s-count">0</div>
+        <div class="stat-lbl">Entries</div>
+      </div>
+    </div>
+
+    <div class="add-card">
+      <div class="section-title">Add food</div>
+      <div class="add-row">
+        <div class="field">
+          <label>Food / drink</label>
+          <input type="text" id="f-name" placeholder="e.g. Chicken salad">
+        </div>
+        <div class="field">
+          <label>Calories</label>
+          <input type="number" id="f-cals" placeholder="350" min="0" max="50000">
+        </div>
+        <button class="btn btn-primary" onclick="addEntry()">+ Add</button>
+      </div>
+      <div class="err" id="f-err"></div>
+    </div>
+
+    <div class="section-title" style="margin-bottom:14px; color:var(--text-muted); font-size:0.9rem; letter-spacing:0.04em; text-transform:uppercase;">
+      Today's log
+    </div>
+    <div id="entries-list"></div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div id="view-history" class="view">
+    <div class="view-header">
+      <h2>30-Day History</h2>
+      <p>Rolling window — last 30 days</p>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Daily calories</div>
+      <div class="bar-chart" id="bar-chart"></div>
+    </div>
+
+    <div id="history-list"></div>
+  </div>
+
+  <!-- SETTINGS VIEW -->
+  <div id="view-settings" class="view">
+    <div class="view-header">
+      <h2>Settings</h2>
+    </div>
+
+    <div class="settings-block">
+      <h3>Daily Calorie Target</h3>
+      <div class="field">
+        <label>Calories per day</label>
+        <input type="number" id="inp-target" min="100" max="50000" placeholder="2000">
+      </div>
+      <button class="btn btn-primary" onclick="saveTarget()">Save target</button>
+      <div class="err" id="t-err"></div>
+    </div>
+
+    <div class="settings-block">
+      <h3>Account</h3>
+      <div class="account-row">
+        <div>
+          <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:2px;">Signed in as</div>
+          <div style="font-weight:600;" id="s-username"></div>
+        </div>
+        <button class="btn btn-ghost" onclick="doLogout()">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-today" onclick="gotoView('today')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5l3 3" stroke-linecap="round"/>
+      </svg>
+      Today
+    </button>
+    <button class="nav-item" id="nav-history" onclick="gotoView('history')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/>
+        <circle cx="8"  cy="15" r="1" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/>
+        <circle cx="16" cy="15" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+      History
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="gotoView('settings')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<div id="toast"></div>
+
+<!-- ─────────────────────────── JAVASCRIPT ───────────────────────────── -->
+<script>
+/* ── State ────────────────────────────────────────────────────────── */
+const S = {
+  token:   localStorage.getItem('kcal_tok'),
+  user:    JSON.parse(localStorage.getItem('kcal_usr') || 'null'),
+  date:    todayStr(),
+  entries: [],
+  summary: [],
+};
+
+/* ── Helpers ──────────────────────────────────────────────────────── */
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* ── API ──────────────────────────────────────────────────────────── */
+async function api(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (S.token)  opts.headers['Authorization'] = 'Bearer ' + S.token;
+  if (body)     opts.body = JSON.stringify(body);
+
+  const res  = await fetch('/api' + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+
+/* ── Auth ─────────────────────────────────────────────────────────── */
+function switchTab(tab) {
+  document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+async function doLogin() {
+  const username = document.getElementById('l-user').value.trim();
+  const password = document.getElementById('l-pass').value;
+  document.getElementById('l-err').textContent = '';
+  try {
+    const d = await api('/auth/login', 'POST', { username, password });
+    saveSession(d);
+  } catch (e) {
+    document.getElementById('l-err').textContent = e.message;
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('r-user').value.trim();
+  const password = document.getElementById('r-pass').value;
+  document.getElementById('r-err').textContent = '';
+  try {
+    const d = await api('/auth/register', 'POST', { username, password });
+    saveSession(d);
+  } catch (e) {
+    document.getElementById('r-err').textContent = e.message;
+  }
+}
+
+function saveSession(d) {
+  S.token = d.token;
+  S.user  = { username: d.username, calorie_target: d.calorie_target };
+  localStorage.setItem('kcal_tok', d.token);
+  localStorage.setItem('kcal_usr', JSON.stringify(S.user));
+  launchApp();
+}
+
+function doLogout() {
+  S.token = null; S.user = null;
+  localStorage.removeItem('kcal_tok');
+  localStorage.removeItem('kcal_usr');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+/* ── App init ─────────────────────────────────────────────────────── */
+async function launchApp() {
+  if (!S.token) return;
+
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  try {
+    const u = await api('/user');
+    S.user  = { username: u.username, calorie_target: u.calorie_target };
+    localStorage.setItem('kcal_usr', JSON.stringify(S.user));
+  } catch (e) {
+    if (e.message.includes('expired') || e.message.includes('Invalid')) {
+      doLogout(); return;
+    }
+  }
+
+  document.getElementById('hdr-user').textContent    = S.user.username;
+  document.getElementById('s-username').textContent  = S.user.username;
+  document.getElementById('inp-target').value        = S.user.calorie_target;
+
+  renderDateNav();
+  await fetchEntries();
+  await fetchSummary();
+}
+
+/* ── Date navigation ──────────────────────────────────────────────── */
+function changeDay(delta) {
+  const d = new Date(S.date + 'T12:00:00');
+  d.setDate(d.getDate() + delta);
+  const next = d.toISOString().split('T')[0];
+  if (next > todayStr()) return;
+  S.date = next;
+  renderDateNav();
+  fetchEntries();
+}
+
+function renderDateNav() {
+  const d       = new Date(S.date + 'T12:00:00');
+  const today   = todayStr();
+  const yest    = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const full    = d.toLocaleDateString('en-AU', { weekday: 'long', month: 'long', day: 'numeric' });
+  const short   = d.toLocaleDateString('en-AU', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  if (S.date === today) {
+    document.getElementById('dn-main').textContent = 'Today';
+    document.getElementById('dn-sub').textContent  = full;
+  } else if (S.date === yest) {
+    document.getElementById('dn-main').textContent = 'Yesterday';
+    document.getElementById('dn-sub').textContent  = full;
+  } else {
+    document.getElementById('dn-main').textContent = d.toLocaleDateString('en-AU', { month: 'long', day: 'numeric' });
+    document.getElementById('dn-sub').textContent  = d.toLocaleDateString('en-AU', { weekday: 'long', year: 'numeric' });
+  }
+
+  document.getElementById('btn-next-day').disabled = S.date >= today;
+}
+
+/* ── Entries ──────────────────────────────────────────────────────── */
+async function fetchEntries() {
+  try {
+    S.entries = await api('/entries?date=' + S.date);
+    renderEntries();
+    updateRing();
+  } catch (e) {
+    if (e.message.includes('Invalid')) doLogout();
+  }
+}
+
+async function addEntry() {
+  const name = document.getElementById('f-name').value.trim();
+  const cals = parseInt(document.getElementById('f-cals').value, 10);
+  document.getElementById('f-err').textContent = '';
+
+  if (!name)       { document.getElementById('f-err').textContent = 'Please enter a food name.'; return; }
+  if (!cals || cals < 1) { document.getElementById('f-err').textContent = 'Please enter a valid calorie count.'; return; }
+
+  try {
+    const entry = await api('/entries', 'POST', { food_name: name, calories: cals, date: S.date });
+    S.entries.unshift(entry);
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-cals').value = '';
+    renderEntries();
+    updateRing();
+    fetchSummary();
+    toast('Added — ' + name);
+  } catch (e) {
+    document.getElementById('f-err').textContent = e.message;
+  }
+}
+
+async function deleteEntry(id) {
+  try {
+    await api('/entries/' + id, 'DELETE');
+    S.entries = S.entries.filter(e => e.id !== id);
+    renderEntries();
+    updateRing();
+    fetchSummary();
+    toast('Entry removed');
+  } catch (e) { /* silent */ }
+}
+
+function renderEntries() {
+  const el = document.getElementById('entries-list');
+  if (!S.entries.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">🍽️</span>
+        <span class="empty-text">Nothing logged yet — add your first entry above.</span>
+      </div>`;
+    return;
+  }
+  el.innerHTML = S.entries.map(e => `
+    <div class="entry-item">
+      <span class="entry-name">${esc(e.food_name)}</span>
+      <span class="entry-cals">${e.calories.toLocaleString()} kcal</span>
+      <button class="btn btn-icon" onclick="deleteEntry(${e.id})">✕</button>
+    </div>`).join('');
+}
+
+/* ── Progress ring ────────────────────────────────────────────────── */
+function updateRing() {
+  const total  = S.entries.reduce((s, e) => s + e.calories, 0);
+  const target = S.user?.calorie_target || 2000;
+  const circ   = 490.09;
+  const pct    = Math.min(total / target, 1);
+  const arc    = document.getElementById('ring-arc');
+
+  arc.style.strokeDashoffset = circ * (1 - pct);
+  arc.style.stroke = total > target          ? 'var(--danger)'
+                   : total >= target * 0.88  ? 'var(--accent)'
+                   :                           'var(--success)';
+
+  document.getElementById('ring-val').textContent    = total.toLocaleString();
+  document.getElementById('ring-val').style.color    = arc.style.stroke;
+  document.getElementById('s-target').textContent    = target.toLocaleString();
+  document.getElementById('s-count').textContent     = S.entries.length;
+
+  const rem     = target - total;
+  const remEl   = document.getElementById('s-rem');
+  const remCard = document.getElementById('s-rem-card');
+  const remLbl  = document.getElementById('s-rem-lbl');
+
+  remEl.textContent  = Math.abs(rem).toLocaleString();
+  remLbl.textContent = rem < 0 ? 'Over' : 'Remaining';
+  remCard.className  = 'stat ' + (rem < 0 ? 'c-danger' : rem < 150 ? 'c-accent' : 'c-success');
+}
+
+/* ── Summary / history ────────────────────────────────────────────── */
+async function fetchSummary() {
+  try {
+    S.summary = await api('/summary');
+    if (document.getElementById('view-history').classList.contains('active')) {
+      renderHistory();
+    }
+  } catch (e) { /* silent */ }
+}
+
+function renderHistory() {
+  renderBarChart();
+  renderHistoryList();
+}
+
+function renderBarChart() {
+  const target = S.user?.calorie_target || 2000;
+  const days   = buildDays();
+  const maxCal = Math.max(...days.map(d => d.total), target, 1);
+  const chart  = document.getElementById('bar-chart');
+
+  chart.innerHTML = days.map(day => {
+    const pct   = (day.total / maxCal * 100).toFixed(1);
+    const color = day.total === 0 ? 'var(--surface-3)'
+                : day.total > target  ? 'var(--danger)'
+                : 'var(--success)';
+    const lbl   = new Date(day.date + 'T12:00:00')
+                    .toLocaleDateString('en-AU', { day: 'numeric' });
+    return `
+      <div class="bar-col" title="${day.date}: ${day.total.toLocaleString()} kcal">
+        <div class="bar-fill" style="height:${pct}%;background:${color}"></div>
+        <span class="bar-lbl">${lbl}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderHistoryList() {
+  const target = S.user?.calorie_target || 2000;
+  const el     = document.getElementById('history-list');
+  const days   = buildDays().filter(d => d.total > 0).reverse();
+
+  if (!days.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">📊</span>
+        <span class="empty-text">No history yet — start tracking today!</span>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = days.map(day => {
+    const pct   = Math.min((day.total / target * 100), 100).toFixed(1);
+    const over  = day.total > target;
+    const met   = !over && day.total >= target * 0.93;
+    const color = over ? 'var(--danger)' : met ? 'var(--accent)' : 'var(--success)';
+    const badge = over ? 'badge-over' : met ? 'badge-met' : 'badge-under';
+    const label = over ? 'Over' : met ? 'On track' : 'Under';
+    const d     = new Date(day.date + 'T12:00:00');
+
+    return `
+      <div class="hday">
+        <div class="hday-date">
+          <div class="hday-date-main">${d.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' })}</div>
+          <div class="hday-date-sub">${d.toLocaleDateString('en-AU', { weekday: 'short' })}</div>
+        </div>
+        <div class="hday-bar">
+          <div class="hday-bar-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div class="hday-total" style="color:${color}">${day.total.toLocaleString()}</div>
+        <div class="badge ${badge}">${label}</div>
+      </div>`;
+  }).join('');
+}
+
+function buildDays() {
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d    = new Date(Date.now() - i * 86400000);
+    const date = d.toISOString().split('T')[0];
+    const hit  = S.summary.find(s => s.date === date);
+    days.push({ date, total: hit ? hit.total_calories : 0 });
+  }
+  return days;
+}
+
+/* ── Settings ─────────────────────────────────────────────────────── */
+async function saveTarget() {
+  const v = parseInt(document.getElementById('inp-target').value, 10);
+  document.getElementById('t-err').textContent = '';
+  if (!v || v < 100 || v > 50000) {
+    document.getElementById('t-err').textContent = 'Enter a target between 100 and 50,000 kcal.';
+    return;
+  }
+  try {
+    await api('/user/target', 'PUT', { calorie_target: v });
+    S.user.calorie_target = v;
+    localStorage.setItem('kcal_usr', JSON.stringify(S.user));
+    updateRing();
+    toast('Target updated to ' + v.toLocaleString() + ' kcal');
+  } catch (e) {
+    document.getElementById('t-err').textContent = e.message;
+  }
+}
+
+/* ── View switching ───────────────────────────────────────────────── */
+function gotoView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+/* ── Keyboard shortcuts ───────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const authVisible = document.getElementById('auth-screen').style.display !== 'none';
+  if (authVisible) {
+    const isLogin = document.getElementById('form-login').style.display !== 'none';
+    isLogin ? doLogin() : doRegister();
+    return;
+  }
+  if (document.activeElement === document.getElementById('f-cals') ||
+      document.activeElement === document.getElementById('f-name')) {
+    addEntry();
+  }
+});
+
+/* ── Boot ─────────────────────────────────────────────────────────── */
+if (S.token && S.user) {
+  launchApp();
+}
+</script>
+</body>
+</html>
