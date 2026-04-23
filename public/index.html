@@ -626,6 +626,121 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* ── Segmented control ────────────────────────────────── */
+    .seg-ctrl {
+      display: flex;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .seg-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Karla', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.18s;
+    }
+
+    .seg-btn.active {
+      background: var(--surface-3);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: 'Karla', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237E7D89' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      transition: border-color 0.2s;
+    }
+
+    select:focus { border-color: var(--accent); }
+    select option { background: var(--surface-2); }
+
+    /* ── TDEE result ───────────────────────────────────────── */
+    .tdee-result-card {
+      background: var(--accent-dim);
+      border: 1px solid rgba(242,201,76,0.2);
+      border-radius: var(--r);
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .tdee-result-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .tdee-result-lbl {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* ── Percentage buttons ────────────────────────────────── */
+    .pct-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-bottom: 4px;
+    }
+
+    .pct-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 10px 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      font-family: 'Karla', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: all 0.18s;
+    }
+
+    .pct-btn span {
+      font-size: 0.65rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .pct-btn:hover { background: var(--surface-3); border-color: var(--accent); color: var(--accent); }
+    .pct-btn:hover span { color: var(--accent); }
+    .pct-btn.selected { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .pct-btn.selected span { color: var(--accent); }
+
     /* ── Responsive ────────────────────────────────────────── */
     @media (max-width: 480px) {
       .auth-card   { padding: 32px 22px; }
@@ -774,12 +889,82 @@
       <h2>Settings</h2>
     </div>
 
+    <!-- TDEE Calculator -->
+    <div class="settings-block">
+      <h3>Maintenance Calculator</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:18px;font-weight:300;">
+        Uses the Mifflin-St Jeor equation — the most validated formula for estimating your Total Daily Energy Expenditure (TDEE).
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="field" style="margin:0;">
+          <label>Biological sex</label>
+          <div class="seg-ctrl" id="seg-sex">
+            <button class="seg-btn active" data-val="male"   onclick="setSeg('sex','male',this)">Male</button>
+            <button class="seg-btn"        data-val="female" onclick="setSeg('sex','female',this)">Female</button>
+          </div>
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Age</label>
+          <input type="number" id="tdee-age" placeholder="30" min="15" max="100">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="field" style="margin:0;">
+          <label>Weight (kg)</label>
+          <input type="number" id="tdee-weight" placeholder="70" min="30" max="300" step="0.5">
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Height (cm)</label>
+          <input type="number" id="tdee-height" placeholder="170" min="100" max="250">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Activity level</label>
+        <select id="tdee-activity">
+          <option value="1.2">Sedentary — desk job, little or no exercise</option>
+          <option value="1.375">Lightly active — exercise 1–3 days/week</option>
+          <option value="1.55" selected>Moderately active — exercise 3–5 days/week</option>
+          <option value="1.725">Very active — hard exercise 6–7 days/week</option>
+          <option value="1.9">Extra active — physical job + daily exercise</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" onclick="calcTDEE()" style="margin-bottom:14px;">Calculate maintenance</button>
+
+      <div id="tdee-result" style="display:none;">
+        <div class="tdee-result-card">
+          <div class="tdee-result-num" id="tdee-num">2200</div>
+          <div class="tdee-result-lbl">kcal/day estimated maintenance</div>
+        </div>
+
+        <div style="font-size:0.75rem;color:var(--text-muted);margin:14px 0 10px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">
+          Set target as % of maintenance
+        </div>
+        <div class="pct-grid" id="pct-grid">
+          <button class="pct-btn" onclick="applyPct(0.70)">70%<span>Cut</span></button>
+          <button class="pct-btn" onclick="applyPct(0.80)">80%<span>Cut</span></button>
+          <button class="pct-btn" onclick="applyPct(0.90)">90%<span>Mild cut</span></button>
+          <button class="pct-btn" onclick="applyPct(1.00)">100%<span>Maintain</span></button>
+          <button class="pct-btn" onclick="applyPct(1.10)">110%<span>Mild bulk</span></button>
+          <button class="pct-btn" onclick="applyPct(1.20)">120%<span>Bulk</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual target override -->
     <div class="settings-block">
       <h3>Daily Calorie Target</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;font-weight:300;">
+        Set manually, or use the calculator above to populate this automatically.
+      </p>
       <div class="field">
         <label>Calories per day</label>
         <input type="number" id="inp-target" min="100" max="50000" placeholder="2000">
       </div>
+      <div id="target-from-tdee" style="display:none;font-size:0.8rem;color:var(--accent);margin-bottom:12px;"></div>
       <button class="btn btn-primary" onclick="saveTarget()">Save target</button>
       <div class="err" id="t-err"></div>
     </div>
@@ -1049,12 +1234,17 @@ function updateRing() {
   const arc    = document.getElementById('ring-arc');
 
   arc.style.strokeDashoffset = circ * (1 - pct);
-  arc.style.stroke = total > target          ? 'var(--danger)'
-                   : total >= target * 0.88  ? 'var(--accent)'
-                   :                           'var(--success)';
+
+  // Red when well under (<45%) or over; gold in the middle; green when on track (75-100%)
+  const ringColor = total > target         ? 'var(--danger)'
+                  : total >= target * 0.75 ? 'var(--success)'
+                  : total >= target * 0.45 ? 'var(--accent)'
+                  : total > 0              ? 'var(--danger)'
+                  :                         'var(--text-subtle)';
+  arc.style.stroke = ringColor;
 
   document.getElementById('ring-val').textContent    = total.toLocaleString();
-  document.getElementById('ring-val').style.color    = arc.style.stroke;
+  document.getElementById('ring-val').style.color    = total === 0 ? 'var(--text-muted)' : ringColor;
   document.getElementById('s-target').textContent    = target.toLocaleString();
   document.getElementById('s-count').textContent     = S.entries.length;
 
@@ -1154,6 +1344,61 @@ function buildDays() {
 }
 
 /* ── Settings ─────────────────────────────────────────────────────── */
+
+// Segmented control helper
+const segs = { sex: 'male' };
+function setSeg(group, val, btn) {
+  segs[group] = val;
+  btn.closest('.seg-ctrl').querySelectorAll('.seg-btn')
+    .forEach(b => b.classList.toggle('active', b === btn));
+}
+
+// TDEE calculator (Mifflin-St Jeor)
+let lastTDEE = 0;
+function calcTDEE() {
+  const age      = parseFloat(document.getElementById('tdee-age').value);
+  const weight   = parseFloat(document.getElementById('tdee-weight').value);
+  const height   = parseFloat(document.getElementById('tdee-height').value);
+  const activity = parseFloat(document.getElementById('tdee-activity').value);
+  const sex      = segs.sex;
+
+  if (!age || !weight || !height || age < 15 || age > 100 || weight < 30 || height < 100) {
+    toast('Please fill in age, weight and height correctly.');
+    return;
+  }
+
+  // Mifflin-St Jeor BMR
+  const bmr = sex === 'male'
+    ? (10 * weight) + (6.25 * height) - (5 * age) + 5
+    : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+
+  lastTDEE = Math.round(bmr * activity);
+
+  document.getElementById('tdee-num').textContent = lastTDEE.toLocaleString();
+  document.getElementById('tdee-result').style.display = 'block';
+
+  // Clear any previously selected pct button
+  document.querySelectorAll('.pct-btn').forEach(b => b.classList.remove('selected'));
+}
+
+function applyPct(pct) {
+  if (!lastTDEE) { toast('Calculate your maintenance first.'); return; }
+  const target = Math.round(lastTDEE * pct);
+  document.getElementById('inp-target').value = target;
+
+  const pctLabel = Math.round(pct * 100);
+  const hint = document.getElementById('target-from-tdee');
+  hint.textContent = `${pctLabel}% of ${lastTDEE.toLocaleString()} kcal maintenance = ${target.toLocaleString()} kcal`;
+  hint.style.display = 'block';
+
+  document.querySelectorAll('.pct-btn').forEach(b => {
+    b.classList.toggle('selected', parseFloat(b.getAttribute('onclick').match(/[\d.]+/)[0]) === pct);
+  });
+
+  // Scroll to save button
+  document.getElementById('inp-target').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 async function saveTarget() {
   const v = parseInt(document.getElementById('inp-target').value, 10);
   document.getElementById('t-err').textContent = '';
