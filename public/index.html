@@ -1024,8 +1024,20 @@ const S = {
 };
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
+
+// Returns YYYY-MM-DD in the user's local timezone (not UTC).
+// This prevents the day resetting early when the server is in a
+// different timezone (e.g. US West vs Brisbane AEST UTC+10).
+function localDateStr(date) {
+  const d = date || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  return localDateStr(new Date());
 }
 
 function esc(s) {
@@ -1135,7 +1147,7 @@ async function launchApp() {
 function changeDay(delta) {
   const d = new Date(S.date + 'T12:00:00');
   d.setDate(d.getDate() + delta);
-  const next = d.toISOString().split('T')[0];
+  const next = localDateStr(d);
   if (next > todayStr()) return;
   S.date = next;
   renderDateNav();
@@ -1145,7 +1157,8 @@ function changeDay(delta) {
 function renderDateNav() {
   const d       = new Date(S.date + 'T12:00:00');
   const today   = todayStr();
-  const yest    = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const yesterdayDate = new Date(); yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yest    = localDateStr(yesterdayDate);
   const full    = d.toLocaleDateString('en-AU', { weekday: 'long', month: 'long', day: 'numeric' });
   const short   = d.toLocaleDateString('en-AU', { weekday: 'long', month: 'long', day: 'numeric' });
 
@@ -1335,8 +1348,8 @@ function renderHistoryList() {
 function buildDays() {
   const days = [];
   for (let i = 29; i >= 0; i--) {
-    const d    = new Date(Date.now() - i * 86400000);
-    const date = d.toISOString().split('T')[0];
+    const d    = new Date(); d.setDate(d.getDate() - i);
+    const date = localDateStr(d);
     const hit  = S.summary.find(s => s.date === date);
     days.push({ date, total: hit ? hit.total_calories : 0 });
   }
