@@ -11,6 +11,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE-THIS-IN-PRODUCTION-use-a-long-random-string';
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'calories.db');
+const USER_TIMEZONE = process.env.USER_TIMEZONE || 'Australia/Brisbane';
+
+// Returns YYYY-MM-DD in the configured user timezone.
+// This prevents date boundaries shifting based on the server's UTC clock.
+function localDateStr(offsetDays = 0) {
+  const d = new Date();
+  if (offsetDays) d.setDate(d.getDate() + offsetDays);
+  return d.toLocaleDateString('en-CA', { timeZone: USER_TIMEZONE }); // en-CA gives YYYY-MM-DD
+}
 
 // ─── Database Setup ───────────────────────────────────────────────────────────
 
@@ -162,10 +171,8 @@ app.get('/api/entries', authenticate, (req, res) => {
     return res.json(rows);
   }
 
-  // Default: last 30 days
-  const from = new Date();
-  from.setDate(from.getDate() - 29);
-  const fromDate = from.toISOString().split('T')[0];
+  // Default: last 30 days (computed in user's local timezone)
+  const fromDate = localDateStr(-29);
 
   const rows = db.prepare(
     'SELECT * FROM food_entries WHERE user_id = ? AND date >= ? ORDER BY date DESC, created_at DESC'
@@ -208,9 +215,7 @@ app.delete('/api/entries/:id', authenticate, (req, res) => {
 // ─── 30-Day Summary ───────────────────────────────────────────────────────────
 
 app.get('/api/summary', authenticate, (req, res) => {
-  const from = new Date();
-  from.setDate(from.getDate() - 29);
-  const fromDate = from.toISOString().split('T')[0];
+  const fromDate = localDateStr(-29);
 
   const rows = db.prepare(`
     SELECT   date,
